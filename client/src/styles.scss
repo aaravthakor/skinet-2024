@@ -29,3 +29,13 @@ $customTheme: mat.define-theme();
 button.match-input-height {
     height: var(--mat-form-field-container-height) !important;
 }
+
+a {
+    &.active {
+        color: #7d00fa;
+    }
+}
+
+.mdc-notched-outline__notch {
+    border-right-style: none !important;
+}
