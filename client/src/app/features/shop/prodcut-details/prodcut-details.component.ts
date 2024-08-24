@@ -8,6 +8,8 @@ import { MatIcon } from '@angular/material/icon';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { MatDivider } from '@angular/material/divider';
+import { CartService } from '../../../core/services/cart.service';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-prodcut-details',
@@ -19,7 +21,8 @@ import { MatDivider } from '@angular/material/divider';
     MatFormField,
     MatInput,
     MatLabel,
-    MatDivider
+    MatDivider,
+    FormsModule
   ],
   templateUrl: './prodcut-details.component.html',
   styleUrl: './prodcut-details.component.scss'
@@ -28,8 +31,13 @@ export class ProdcutDetailsComponent implements OnInit{
  
   private shopService = inject(ShopService);
   private activatedRoute = inject(ActivatedRoute);
+  private cartService = inject(CartService);
+
   product? : Product;
 
+  quantityInCart = 0;
+  quantity = 1;
+  
   ngOnInit(): void {
     this.loadProduct();
   }
@@ -39,10 +47,38 @@ export class ProdcutDetailsComponent implements OnInit{
     if(!id) return;
 
     this.shopService.getProdcut(+id).subscribe({
-      next:product => this.product = product,
+      next:product => {        
+        this.product = product,
+        this.updateQuantityInCart()
+      },
       error: error => console.log(error)
     })
-
   }
+
+  updateCart(){
+    if(!this.product) return;
+
+    if(this.quantity > this.quantityInCart){
+      const  itemsToAdd = this.quantity - this.quantityInCart;
+      this.quantityInCart += itemsToAdd;
+      this.cartService.addItemToCart(this.product,itemsToAdd);
+    }else{
+      const itemsToRemove = this.quantityInCart - this.quantity;
+      this.quantityInCart -= itemsToRemove;
+      this.cartService .removeItemFromCart(this.product.id, itemsToRemove);
+    }
+  }
+
+  updateQuantityInCart(){
+    this.quantityInCart = this.cartService.cart()?.items.
+                          find(x=>x.producId === this.product?.id)?.quantity || 0;
+
+    this.quantity = this.quantityInCart  || 1;
+  }
+
+  getButtonText(){
+    return this.quantityInCart > 0 ? 'Update cart' : 'Add to cart'
+  }
+
 
 }
